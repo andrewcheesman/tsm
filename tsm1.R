@@ -160,6 +160,7 @@ mc_calc <- function(df) {
   
   # Working around the too-strict row sum requirements for package
   # Adjusts just the first group for the diff (in this case, the largest one, where it'll have the lowest comparative impact)
+  # HACKETY HACK
   
   sdf_pct2 <- round(sdf_pct, 3)
   sdf_pct2$dff <- 1 - rowSums(sdf_pct2)
@@ -188,8 +189,10 @@ get("train_dtmc")
 get("test_dtmc")
 
 
+# monte carlo stuff
+rmarkovchain(n = 50, object = test_dtmc, t0 = "st_6")
 
-
+# TODO start with estimation section of pdf (page 27) - back into markov chain from data
 
 
 
