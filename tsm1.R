@@ -82,7 +82,7 @@ load("base.RDA")
 # Bucketing states - comment out line 84-86 to go back to original
 
 for (i in 7:12) {
-  a[,i] <- ifelse(a[,i] >= 4, 4, a[,i])
+  a[,i] <- ifelse(a[,i] >= 6, 6, a[,i])
 }
 
 unqs <- sort(unique(a$PAY_0))
@@ -203,32 +203,94 @@ rm(dtmc)
 get("train_dtmc")
 get("test_dtmc")
 
+plot(train_dtmc)
+plot(test_dtmc)
+
+save(train_dtmc, file = "train_dtmc.RDA")
+save(test_dtmc, file = "test_dtmc.RDA")
+
 ####################################################################################################
 # Predictions
 
-Sys.time()
-sq <- rmarkovchain(n = 10000000, object = train_dtmc, t0 = "st_0")
+load("train_dtmc.RDA")
+load("test.RDA")
+
+tm <- Sys.time()
+sq <- rmarkovchain(n = 1000000, object = train_dtmc, t0 = "st_0")
 ft <- markovchainFit(sq, "mle")
 
+pds = 18
+
 prdct <- function(inpt) {
-  prd <<- predict(object = ft$estimate, newdata = inpt, n.ahead = 6)
+  prd <<- predict(object = ft$estimate, newdata = inpt, n.ahead = pds)
   }
 
 str <- data.frame()
 for (j in 1:nrow(tst)) {
-  prd2 <- data.frame(id = tst[j,1],
-                     pd_6 = prdct(paste0("st_", tst[j,7]))[6])
+  
+  prd2 <- data.frame(t(c(tst[j,1],
+                         prdct(paste0("st_", tst[j,7])))))
   str <- rbind(str, prd2)
   }
 
-ggplot(str, aes(x = factor(pd_6))) +
+Sys.time() - tm
+
+
+ggplot(str, aes(x = factor(pd))) +
   geom_histogram(stat = "count") +
   theme_bw()
 
-Sys.time()
+Sys.time() - tm
 
 get("train_dtmc")
 ft$estimate
+
+rslt <- merge(str, tst[,c(1, 12)], by.x = "id", by.y = "ID", all = T)
+colnames(rslt)[2] <- "p"
+colnames(rslt)[3] <- "a"
+rslt$p <- as.numeric(substr(rslt$p, 4, 5))
+
+rslt$pa <- paste0(rslt$p, rslt$a)
+
+aggregate(id ~ pa, rslt, FUN = length)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
