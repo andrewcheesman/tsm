@@ -61,7 +61,7 @@ for (p in 7:12) {
   colnames(agg) <- c("st", paste0("ct_", substr(colnames(a)[p], 5, 5)))
   ad <- merge(ad, agg, by = "st", all = T)
   
-  }
+}
 
 rm(p, agg)
 
@@ -81,9 +81,25 @@ load("base.RDA")
 
 # Bucketing states - comment out line 84-86 to go back to original
 
-# for (i in 7:12) {
-#   a[,i] <- ifelse(a[,i] >= 3, 3, a[,i])
-# }
+for (i in 7:12) {
+  a[,i] <- ifelse(a[,i] >= 4, 4, a[,i])
+}
+
+unqs <- sort(unique(a$PAY_0))
+
+ad <- data.frame(st = c(unqs))
+for (p in 7:12) {
+  agg <- aggregate(ID ~ a[,p], a, FUN = length)
+  colnames(agg) <- c("st", paste0("tm_", substr(colnames(a)[p], 5, 5)))
+  ad <- merge(ad, agg, by = "st", all = T)
+}
+
+ad_pct <- ad[,c(2:ncol(ad))]/nrow(a)
+ad_pct <- apply(ad_pct, 2, percent)
+
+print(ad_pct)
+
+rm(p, i, agg, unqs, ad)
 
 # Test/train
 
@@ -119,13 +135,12 @@ save(tst, file = "test.RDA")
 save(trnl, file = "train_long.RDA")
 save(tstl, file = "test_long.RDA")
 
-rm(list = ls())
-
+####################################################################################################
 # Calculate DTMCs - functionalized
 # Detects states as per contents of both df fields
 
-load("train_long.RDA")
-load("test_long.RDA")
+# load("train_long.RDA")
+# load("test_long.RDA")
 
 # takes as input long-format data.frame (three fields - "id", "a" (pre), and "b" (post)) formatted as above
 
@@ -188,55 +203,32 @@ rm(dtmc)
 get("train_dtmc")
 get("test_dtmc")
 
+####################################################################################################
+# Predictions
 
-# monte carlo stuff
-rmarkovchain(n = 50, object = test_dtmc, t0 = "st_6")
+Sys.time()
+sq <- rmarkovchain(n = 10000000, object = train_dtmc, t0 = "st_0")
+ft <- markovchainFit(sq, "mle")
 
-# TODO start with estimation section of pdf (page 27) - back into markov chain from data
+prdct <- function(inpt) {
+  prd <<- predict(object = ft$estimate, newdata = inpt, n.ahead = 6)
+  }
 
+str <- data.frame()
+for (j in 1:nrow(tst)) {
+  prd2 <- data.frame(id = tst[j,1],
+                     pd_6 = prdct(paste0("st_", tst[j,7]))[6])
+  str <- rbind(str, prd2)
+  }
 
+ggplot(str, aes(x = factor(pd_6))) +
+  geom_histogram(stat = "count") +
+  theme_bw()
 
+Sys.time()
 
-
-# scratch crap
-
-# todo
-# 0. separate into train and test
-# 1. use dummy as starting data - universal before/after framework
-# 2. simplify after values - should only be possible for individuals to increase by 1 (if they go another month without paying) or fall back to 0
-# 2. pull in predictors from a (sex, education, marriage, age) into dummy
-# 3. models for as many states as there exist
-#    response var: EITHER treat anything BUT a movement back to 0 as a 1 (which means remaining behind on payments) 
-#                  OR build multivariate logistic models
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+get("train_dtmc")
+ft$estimate
 
 
 
