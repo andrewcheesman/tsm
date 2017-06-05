@@ -227,39 +227,17 @@ prdct <- function(inpt) {
 
 str <- data.frame()
 for (j in 1:nrow(tst)) {
-  
   prd2 <- data.frame(t(c(tst[j,1],
                          prdct(paste0("st_", tst[j,7])))))
   str <- rbind(str, prd2)
   }
 
-Sys.time() - tm
-
-
-ggplot(str, aes(x = factor(pd))) +
-  geom_histogram(stat = "count") +
-  theme_bw()
+colnames(str)[1] <- "id"
 
 Sys.time() - tm
 
 get("train_dtmc")
 ft$estimate
-
-rslt <- merge(str, tst[,c(1, 12)], by.x = "id", by.y = "ID", all = T)
-colnames(rslt)[2] <- "p"
-colnames(rslt)[3] <- "a"
-rslt$p <- as.numeric(substr(rslt$p, 4, 5))
-
-rslt$pa <- paste0(rslt$p, rslt$a)
-
-aggregate(id ~ pa, rslt, FUN = length)
-
-
-
-
-
-
-
 
 
 
