@@ -240,12 +240,13 @@ get("train_dtmc")
 ft$estimate
 
 
+####################################################################################################
+# Testing a new dataset from
+# https://assets.datacamp.com/course/credit-risk-modeling-in-r/loan_data_ch2.rds
 
+download.file("https://assets.datacamp.com/course/credit-risk-modeling-in-r/loan_data_ch2.rds", destfile = "loan_data.rds")
 
-
-
-
-
+dat <- readRDS("loan_data.rds")
 
 
 
